@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Chart and Nested Squares</title>
+   
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        .controls, .controls2 {
+            width: 45%;
+        }
+        .controls label, .controls2 label,
+        .controls select, .controls2 select,
+        .controls button, .controls2 button {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .controls select, .controls2 select {
+            padding: 10px;
+            width: 200px;
+        }
+        .controls button, .controls2 button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #chartdiv, #chartdiv2 {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 600px;
+        }
+        .large-square {
+            width: 300px;
+            height: 300px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            border: 2px solid black;
+            position: relative;
+        }
+        .large-square div {
+            border: 1px solid black;
+        }
+        .small-square {
+            width: 200px;
+            height: 200px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            border: 2px solid black;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+        }
+        .small-square div {
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            position: relative;
+        }
+        .percentage {
+            position: absolute;
+            font-size: 16px;
+            background-color: white;
+            padding: 2px 5px;
+            border: 1px solid black;
+            border-radius: 4px;
+            z-index: 10; /* 確保百分比顯示在最上層 */
+        }
+        .line {
+            stroke: black;
+            stroke-width: 2;
+        
+        }
+        .batter-info {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    padding: 8px;
+    margin-top: 7px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.batter-info h3 {
+    color: #2a6496;
+    font-size: 20px;
+}
+        /* 新增的樣式 */
+    .pitcher-info {
+        font-family: 'Arial', sans-serif;
+        color: #333;
+        background-color: #f8f8f8;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .pitcher-info h3 {
+        color: #2a6496;
+        font-size: 20px;
+    }
+
+    #pitcherDetails {
+        font-size: 16px;
+        color: #555;
+    }
+    </style>
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+</head>
+<body>
+    
+    <div class="controls">
+        <label for="year">Year:</label>
+        <select id="year"></select>
+
+        <label for="pitcher">Pitcher:</label>
+        <select id="pitcher"></select>
+
+        <label for="balls">Balls:</label>
+        <select id="balls">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+
+        <label for="strikes">Strikes:</label>
+        <select id="strikes">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+
+        <button onclick="loadData()">Load Data</button>
+
+        <div id="chartdiv"></div>
+
+        <div class="container">
+            <div class="large-square">
+                <div data-zone="11"><br>&emsp;&emsp;&emsp;11</div>
+                <div data-zone="12"><br>&emsp;&emsp;&emsp;12</div>
+                <div data-zone="13"><br><br><br><br><br><br>&emsp;&emsp;&emsp;13</div>
+                <div data-zone="14"><br><br><br><br><br><br>&emsp;&emsp;&emsp;&emsp;&emsp;14</div>
+                <div class="small-square" id="zoneChart">
+                    <div data-zone="1">1</div>
+                    <div data-zone="2">2</div>
+                    <div data-zone="3">3</div>
+                    <div data-zone="4">4</div>
+                    <div data-zone="5">5</div>
+                    <div data-zone="6">6</div>
+                    <div data-zone="7">7</div>
+                    <div data-zone="8">8</div>
+                    <div data-zone="9">9</div>
+                </div>
+            </div>
+            <svg id="lines" width="500" height="500" style="position:absolute; top:0; left:0;"></svg>
+        </div>
+        <!-- 放在投手的14宫格下方 -->
+<div class="pitcher-info">
+    <h3>投手基本資料</h3>
+    <div id="pitcherDetails">等待加载...</div>
+</div>
+
+    </div>
+
+    <div class="controls2" >
+        <label for="year2">Year:</label>
+        <select id="year2"></select>
+
+        <label for="batter">Batter:</label>
+        <select id="batter"></select>
+
+        <label for="balls2">Balls:</label>
+        <select id="balls2">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+
+        <label for="strikes2">Strikes:</label>
+        <select id="strikes2">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+
+        <button onclick="loadData2()">Load Data</button>
+       
+        <!-- 在打者資訊下拉式選單下方添加打擊率說明 -->
+        <div id="battingAverage">打擊率：N/A</div>
+        
+
+
+ 
+
+        <div id="chartdiv2"></div>
+        <!-- 右侧14宫格 -->
+    <div class="container">
+        <div class="large-square">
+            <div data-zone="11"><br>&emsp;&emsp;&emsp;11</div>
+            <div data-zone="12"><br>&emsp;&emsp;&emsp;12</div>
+            <div data-zone="13"><br><br><br><br><br><br>&emsp;&emsp;&emsp;13</div>
+            <div data-zone="14"><br><br><br><br><br><br>&emsp;&emsp;&emsp;&emsp;&emsp;14</div>
+            <div class="small-square" id="zoneChart2">
+                <div data-zone="1">1</div>
+                <div data-zone="2">2</div>
+                <div data-zone="3">3</div>
+                <div data-zone="4">4</div>
+                <div data-zone="5">5</div>
+                <div data-zone="6">6</div>
+                <div data-zone="7">7</div>
+                <div data-zone="8">8</div>
+                <div data-zone="9">9</div>
+            </div>
+        </div>
+        <svg id="lines2" width="500" height="500" style="position:absolute; top:0; left:0;"></svg>
+        
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+    <!-- 添加新表格 -->
+    <div style="flex: 1; min-width: 300px;"> <!-- 确保此容器不会过小 -->
+    <table id="battingStatsTable">
+        <thead>
+            <tr>
+                <th>球種</th>
+                <th>打擊率</th>
+                
+    </div>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 数据将通过JavaScript动态填充 -->
+        </tbody>
+        
+    </table>
+     <!-- 新增的打者基本資料區塊 -->
+     <div class="batter-info" style="flex: 1; min-width: 200px; margin-left: 20px;">
+        <h3>打者基本資料</h3>
+        <div id="batterDetails">等待加载...</div>
+    </div>
+</div>
+   
+</div>
+
+    </div>
+   
+    <script>
+        am5.ready(function() {
+            var root = am5.Root.new("chartdiv");
+            root.setThemes([
+                am5themes_Animated.new(root)
+            ]);
+
+            var chart = root.container.children.push(
+                am5percent.PieChart.new(root, {
+                    endAngle: 270
+                })
+            );
+
+            var series = chart.series.push(
+                am5percent.PieSeries.new(root, {
+                    valueField: "value",
+                    categoryField: "category",
+                    endAngle: 270
+                })
+            );
+
+            series.states.create("hidden", {
+                endAngle: -90
+            });
+
+            function loadPitchers(year) {
+                fetch(`/api/pitchers?year=${year}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var pitcherSelect = document.getElementById('pitcher');
+                        pitcherSelect.innerHTML = '';
+                        data.forEach(pitcher => {
+                            var option = document.createElement('option');
+                            option.value = pitcher;
+                            option.text = pitcher;
+                            pitcherSelect.appendChild(option);
+                        });
+                        loadData();
+                    })
+                    .catch(error => console.error('Error fetching pitchers:', error));
+            }
+
+            function loadYears() {
+                fetch('/api/years')
+                    .then(response => response.json())
+                    .then(data => {
+                        var yearSelect = document.getElementById('year');
+                        data.forEach(year => {
+                            var option = document.createElement('option');
+                            option.value = year;
+                            option.text = year;
+                            yearSelect.appendChild(option);
+                        });
+                        loadPitchers(data[0]);
+                    })
+                    .catch(error => console.error('Error fetching years:', error));
+            }
+
+            document.getElementById('year').addEventListener('change', function() {
+                loadPitchers(this.value);
+            });
+            // 添加新功能：加载投手详情
+            function loadPitcherDetails(year, pitcher) {
+    fetch(`/api/pitcher-details?year=${year}&pitcher=${pitcher}`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsDiv = document.getElementById('pitcherDetails');
+            if (data && Object.keys(data).length > 0) {
+                detailsDiv.innerHTML = `Player: ${data.Player}, Wins: ${data.W}, Losses: ${data.L}, ERA: ${data.ERA}, K: ${data.K}, WHIP: ${data.WHIP},IP: ${data.IP},BB: ${data.BB}`;
+            } else {
+                detailsDiv.innerHTML = '无投手数据。';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching pitcher details:', error);
+            document.getElementById('pitcherDetails').innerHTML = '加载数据失败。';
+        });
+}
+
+        // 添加事件监听器到投手选择框
+document.getElementById('pitcher').addEventListener('change', function() {
+    const year = document.getElementById('year').value;
+    const pitcher = this.value;
+    loadPitcherDetails(year, pitcher);
+});
+
+// 确保所有DOM元素都已加载
+document.addEventListener('DOMContentLoaded', function() {
+    // 你可以在这里调用任何需要DOM完全加载后执行的函数
+});
+
+            window.loadData = function() {
+                var year = document.getElementById("year").value;
+                var pitcher = document.getElementById("pitcher").value;
+                var balls = document.getElementById("balls").value;
+                var strikes = document.getElementById("strikes").value;
+
+                fetch(`/api/data?year=${year}&pitcher=${pitcher}&balls=${balls}&strikes=${strikes}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        series.data.setAll(data);
+                        series.appear(1000, 100);
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+
+                fetch(`/api/zones?year=${year}&pitcher=${pitcher}&balls=${balls}&strikes=${strikes}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updatePitcherZoneChart(data);
+                    })
+                    .catch(error => console.error('Error fetching zone data:', error));
+            };
+
+            function updatePitcherZoneChart(data) {
+                var zoneChart = document.getElementById("zoneChart");
+                var zones = zoneChart.querySelectorAll('div');
+                var largeSquare = document.querySelector('.large-square');
+                var largeZones = largeSquare.querySelectorAll('div');
+
+                zones.forEach(zone => {
+                    zone.innerHTML = zone.getAttribute('data-zone'); // 恢复原始数字
+                });
+
+                largeZones.forEach(zone => {
+                    if (zone.getAttribute('data-zone')) {
+                        zone.innerHTML = zone.getAttribute('data-zone'); // 恢复原始数字
+                    }
+                });
+                function loadPitcherDetails(year, pitcher) {
+    fetch(`/api/pitcher-details?year=${year}&pitcher=${pitcher}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data); // 添加此行以查看返回的数据
+            const detailsDiv = document.getElementById('pitcherDetails');
+            if (data && Object.keys(data).length > 0) {
+                detailsDiv.innerHTML = `Player: ${data.Player}, Wins: ${data.W}, Losses: ${data.L}, ERA: ${data.ERA}, Strikeouts: ${data.K}, WHIP: ${data.WHIP}`;
+            } else {
+                detailsDiv.innerHTML = '无投手数据。';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching pitcher details:', error);
+            document.getElementById('pitcherDetails').innerHTML = '加载数据失败。';
+        });
+}
+
+                // 清除之前的百分比和线条
+                var container = document.querySelector('.container');
+                var percentages = container.querySelectorAll('.percentage');
+                percentages.forEach(percentage => percentage.remove());
+                var lines = document.getElementById('lines');
+                lines.innerHTML = '';
+
+                var totalPitches = data.reduce((acc, item) => acc + item.count, 0);
+
+                data.forEach(item => {
+                    var zoneElement = zoneChart.querySelector(`[data-zone="${item.zone}"]`) || largeSquare.querySelector(`[data-zone="${item.zone}"]`);
+                    if (zoneElement) {
+                        var percentage = ((item.count / totalPitches) * 100).toFixed(2) + '%';
+
+                        var percentageElement = document.createElement('div');
+                        percentageElement.classList.add('percentage');
+                        percentageElement.textContent = percentage;
+                        container.appendChild(percentageElement);
+
+                        var zoneRect = zoneElement.getBoundingClientRect();
+                        var containerRect = container.getBoundingClientRect();
+
+                        // 放置百分比在区域外部
+                        var offset = 30; // 调整百分比位置的偏移量
+                        var x, y;
+                        switch (parseInt(item.zone)) {
+                            case 1:
+                                x = zoneRect.left - containerRect.left - offset;
+                                y = zoneRect.top - containerRect.top - offset;
+                                break;
+                            case 2:
+                                x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                                y = zoneRect.top - containerRect.top - offset;
+                                break;
+                            case 3:
+                                x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                                y = zoneRect.top - containerRect.top - offset;
+                                break;
+                            case 4:
+                                x = zoneRect.left - containerRect.left - offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                                break;
+                            case 5:
+                                x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                                y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                                break;
+                            case 6:
+                                x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                                break;
+                            case 7:
+                                x = zoneRect.left - containerRect.left - offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                                break;
+                            case 8:
+                                x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                                y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                                break;
+                            case 9:
+                                x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                                break;
+                            case 11:
+                                x = zoneRect.left - containerRect.left - offset;
+                                y = zoneRect.top - containerRect.top - offset;
+                                break;
+                            case 12:
+                                x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                                y = zoneRect.top - containerRect.top - offset;
+                                break;
+                            case 13:
+                                x = zoneRect.left - containerRect.left - offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                                break;
+                            case 14:
+                                x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                                y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                                break;
+                        }
+                        percentageElement.style.left = `${x}px`;
+                        percentageElement.style.top = `${y}px`;
+
+                        // 连接线
+                    //     var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    //     line.setAttribute("class", "line");
+                    //     line.setAttribute("x1", zoneRect.left + zoneRect.width / 2 - containerRect.left);
+                    //     line.setAttribute("y1", zoneRect.top + zoneRect.height / 2 - containerRect.top);
+                    //     line.setAttribute("x2", x + 20); // 调整线条终点坐标，使其与百分比框对齐
+                    //     line.setAttribute("y2", y + 10);
+                    //     lines.appendChild(line);
+                    }
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                loadData(); // 窗口大小变化时重新加载数据并更新位置
+            });
+
+            loadYears();
+        });
+
+        am5.ready(function() {
+        // 初始化右侧的饼图
+        var root2 = am5.Root.new("chartdiv2");
+        root2.setThemes([
+            am5themes_Animated.new(root2)
+        ]);
+
+        var chart2 = root2.container.children.push(
+            am5percent.PieChart.new(root2, {
+                endAngle: 270
+            })
+        );
+
+        var series2 = chart2.series.push(
+            am5percent.PieSeries.new(root2, {
+                valueField: "value",
+                categoryField: "category",
+                endAngle: 270
+            })
+        );
+
+        series2.states.create("hidden", {
+            endAngle: -90
+        });
+
+        function loadBatters(year) {
+            fetch(`/api/batters?year=${year}`)
+                .then(response => response.json())
+                .then(data => {
+                    var batterSelect = document.getElementById('batter');
+                    batterSelect.innerHTML = '';
+                    data.forEach(batter => {
+                        var option = document.createElement('option');
+                        option.value = batter;
+                        option.text = batter;
+                        batterSelect.appendChild(option);
+                    });
+                    loadData2();
+                })
+                .catch(error => console.error('Error fetching batters:', error));
+        }
+
+        function loadYears2() {
+            fetch('/api/years')
+                .then(response => response.json())
+                .then(data => {
+                    var yearSelect = document.getElementById('year2');
+                    data.forEach(year => {
+                        var option = document.createElement('option');
+                        option.value = year;
+                        option.text = year;
+                        yearSelect.appendChild(option);
+                    });
+                    loadBatters(data[0]);
+                })
+                .catch(error => console.error('Error fetching years:', error));
+        }
+
+        document.getElementById('year2').addEventListener('change', function() {
+            loadBatters(this.value);
+        });
+
+        window.loadData2 = function() {
+            var year = document.getElementById("year2").value;
+            var batter = document.getElementById("batter").value;
+            var balls = document.getElementById("balls2").value;
+            var strikes = document.getElementById("strikes2").value;
+
+            fetch(`/api/data2?year=${year}&batter=${batter}&balls=${balls}&strikes=${strikes}`)
+                .then(response => response.json())
+                .then(data => {
+                    series2.data.setAll(data);
+                    series2.appear(1000, 100);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+                // Fetch zone data for batter
+    fetch(`/api/zones2?year=${year}&batter=${batter}&balls=${balls}&strikes=${strikes}`)
+        .then(response => response.json())
+        .then(data => {
+            updateBatterZoneChart(data);
+        })
+        .catch(error => console.error('Error fetching zone data:', error));
+               // Fetch batting average
+    fetch(`/api/batting-average?year=${year}&batter=${batter}&balls=${balls}&strikes=${strikes}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('battingAverage').innerText = `打擊率：${data.battingAverage}`;
+        })
+        .catch(error => console.error('Error fetching batting average:', error));
+           // 调用新的 API 获取球种和打击率
+    fetch(`/api/pitch-stats?year=${year}&batter=${batter}&balls=${balls}&strikes=${strikes}`)
+      .then(response => response.json())
+      .then(data => {
+        updateBattingStatsTable(data);
+      })
+      .catch(error => console.error('Error fetching pitch stats:', error));
+  };
+         // 更新打击率表格
+  function updateBattingStatsTable(data) {
+    const tableBody = document.getElementById('battingStatsTable').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = ''; // 清空表格内容
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      const tdPitch = document.createElement('td');
+      tdPitch.textContent = row.pitch_name;
+      const tdAverage = document.createElement('td');
+      tdAverage.textContent = row.batting_average;
+      tr.appendChild(tdPitch);
+      tr.appendChild(tdAverage);
+      tableBody.appendChild(tr);
+    });
+    function loadBatterDetails(year, batter) {
+  fetch(`/api/batter-details?year=${year}&batter=${batter}`)
+    .then(response => response.json())
+    .then(data => {
+      const detailsDiv = document.getElementById('batterDetails');
+      if (data && Object.keys(data).length > 0) {
+        detailsDiv.innerHTML = `AVG: ${data.AVG}, H: ${data.H}, HR: ${data.HR}, RBI: ${data.RBI}, OPS: ${data.OPS}, SLG: ${data.SLG}`;
+      } else {
+        detailsDiv.innerHTML = '无打者数据。';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching batter details:', error);
+      document.getElementById('batterDetails').innerHTML = '加载数据失败。';
+    });
+}
+
+document.getElementById('batter').addEventListener('change', function() {
+  const year = document.getElementById("year2").value;
+  const batter = this.value;
+  loadBatterDetails(year, batter);
+});
+  }
+        
+  function updateBatterZoneChart(data) {
+    var zoneChart2 = document.getElementById("zoneChart2");
+    var zones = zoneChart2.querySelectorAll('div');
+    zones.forEach(zone => {
+        const zoneData = data.find(item => item.zone == zone.getAttribute('data-zone'));
+        if (zoneData) {
+            zone.textContent = `${zoneData.battingAverage} (${zoneData.count})`;  // 显示打击率和次数
+        } else {
+            zone.textContent = zone.getAttribute('data-zone');  // 无数据时显示区域编号
+        }
+    });
+    // 清除之前的百分比和线条
+    var container = document.querySelector('.container');
+    var percentages = container.querySelectorAll('.percentage');
+    percentages.forEach(percentage => percentage.remove());
+    var lines = document.getElementById('lines2');
+    lines.innerHTML = '';
+
+    var totalPitches = data.reduce((acc, item) => acc + item.count, 0);
+
+    data.forEach(item => {
+        var zoneElement = zoneChart2.querySelector(`[data-zone="${item.zone}"]`) || largeSquare.querySelector(`[data-zone="${item.zone}"]`);
+        if (zoneElement) {
+            var percentage = ((item.count / totalPitches) * 100).toFixed(2) + '%';
+
+            // var percentageElement = document.createElement('div');
+            // percentageElement.classList.add('percentage');
+            // percentageElement.textContent = percentage;
+            // container.appendChild(percentageElement);
+
+            var zoneRect = zoneElement.getBoundingClientRect();
+            var containerRect = container.getBoundingClientRect();
+
+            // 放置百分比在区域外部
+            var offset = 30; // 调整百分比位置的偏移量
+            var x, y;
+            switch (parseInt(item.zone)) {
+                case 1:
+                    x = zoneRect.left - containerRect.left - offset;
+                    y = zoneRect.top - containerRect.top - offset;
+                    break;
+                case 2:
+                    x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                    y = zoneRect.top - containerRect.top - offset;
+                    break;
+                case 3:
+                    x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                    y = zoneRect.top - containerRect.top - offset;
+                    break;
+                case 4:
+                    x = zoneRect.left - containerRect.left - offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                    break;
+                case 5:
+                    x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                    y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                    break;
+                case 6:
+                    x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height / 2;
+                    break;
+                case 7:
+                    x = zoneRect.left - containerRect.left - offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                    break;
+                case 8:
+                    x = zoneRect.left - containerRect.left + zoneRect.width / 2;
+                    y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                    break;
+                case 9:
+                    x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                    break;
+                case 11:
+                    x = zoneRect.left - containerRect.left - offset;
+                    y = zoneRect.top - containerRect.top - offset;
+                    break;
+                case 12:
+                    x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                    y = zoneRect.top - containerRect.top - offset;
+                    break;
+                case 13:
+                    x = zoneRect.left - containerRect.left - offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                    break;
+                case 14:
+                    x = zoneRect.left - containerRect.left + zoneRect.width + offset;
+                    y = zoneRect.top - containerRect.top + zoneRect.height + offset;
+                    break;
+            }
+            percentageElement.style.left = `${x}px`;
+            percentageElement.style.top = `${y+20}px`;
+
+            // 连接线
+            // var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            // line.setAttribute("class", "line");
+            // line.setAttribute("x1", zoneRect.left + zoneRect.width / 2 - containerRect.left);
+            // line.setAttribute("y1", zoneRect.top + zoneRect.height / 2 - containerRect.top);
+            // line.setAttribute("x2", x + 20); // 调整线条终点坐标，使其与百分比框对齐
+            // line.setAttribute("y2", y + 10);
+            // lines.appendChild(line);
+        }
+    });
+    
+
+    
+    
+}
+        loadYears2();
+    });
+    am5.ready(function() {
+    var root2 = am5.Root.new("chartdiv2");
+    root2.setThemes([
+        am5themes_Animated.new(root2)
+    ]);
+
+    var chart2 = root2.container.children.push(
+        am5percent.PieChart.new(root2, {
+            endAngle: 270
+        })
+    );
+
+    var series2 = chart2.series.push(
+        am5percent.PieSeries.new(root2, {
+            valueField: "value",
+            categoryField: "category",
+            endAngle: 270
+        })
+    );
+
+    series2.states.create("hidden", {
+        endAngle: -90
+    });
+
+    function loadBatters(year) {
+        fetch(`/api/batters?year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+                var batterSelect = document.getElementById('batter');
+                batterSelect.innerHTML = '';
+                data.forEach(batter => {
+                    var option = document.createElement('option');
+                    option.value = batter;
+                    option.text = batter;
+                    batterSelect.appendChild(option);
+                });
+                loadData2();
+            })
+            .catch(error => console.error('Error fetching batters:', error));
+    }
+
+    function loadYears2() {
+        fetch('/api/years')
+            .then(response => response.json())
+            .then(data => {
+                var yearSelect = document.getElementById('year2');
+                data.forEach(year => {
+                    var option = document.createElement('option');
+                    option.value = year;
+                    option.text = year;
+                    yearSelect.appendChild(option);
+                });
+                loadBatters(data[0]);
+            })
+            .catch(error => console.error('Error fetching years:', error));
+    }
+
+    document.getElementById('year2').addEventListener('change', function() {
+        loadBatters(this.value);
+    });
+    
+
+    window.loadData2 = function() {
+        var year = document.getElementById("year2").value;
+        var batter = document.getElementById("batter").value;
+        var balls = document.getElementById("balls2").value;
+        var strikes = document.getElementById("strikes2").value;
+
+        fetch(`/api/data2?year=${year}&batter=${batter}&balls=${balls}&strikes=${strikes}`)
+            .then(response => response.json())
+            .then(data => {
+                series2.data.setAll(data);
+                series2.appear(1000, 100);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+            
+
+        
+    };
+    
+    
+    
+    loadYears2();
+    
+});
+  
+
+    </script>
+</body>
+</html>
